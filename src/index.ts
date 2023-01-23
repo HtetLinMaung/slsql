@@ -7,6 +7,7 @@ import repl from "./utils/repl";
 import { printTable } from "console-table-printer";
 import promptInput from "./utils/prompt-input";
 import execQuery from "./utils/exec-query";
+import { createSpinner } from "nanospinner";
 
 async function main() {
   try {
@@ -27,6 +28,7 @@ async function main() {
       password = Buffer.from(password, "base64").toString("utf-8").trim();
     }
 
+    let spinner = createSpinner("Connecting to database").start();
     let sequelize = await connectDb({
       database,
       username,
@@ -35,6 +37,7 @@ async function main() {
       port,
       host,
     });
+    spinner.success();
 
     if ("--raw-sql" in options || "-r" in options) {
       let rawSql = (options["--raw-sql"] || options["-r"]).trim();
@@ -70,6 +73,7 @@ async function main() {
             });
             printTable(results);
           } else if (sqlOrCmd.startsWith("use") || sqlOrCmd.startsWith("\\c")) {
+            spinner = createSpinner("Changing database").start();
             database = sqlOrCmd
               .replace("use ", "")
               .replace("\\c ", "")
@@ -84,6 +88,7 @@ async function main() {
               port,
               host,
             });
+            spinner.success();
           } else if (
             sqlOrCmd == "exit" ||
             sqlOrCmd == "\\q" ||

@@ -20,6 +20,7 @@ const repl_1 = __importDefault(require("./utils/repl"));
 const console_table_printer_1 = require("console-table-printer");
 const prompt_input_1 = __importDefault(require("./utils/prompt-input"));
 const exec_query_1 = __importDefault(require("./utils/exec-query"));
+const nanospinner_1 = require("nanospinner");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -37,6 +38,7 @@ function main() {
             if (decodePwd) {
                 password = Buffer.from(password, "base64").toString("utf-8").trim();
             }
+            let spinner = (0, nanospinner_1.createSpinner)("Connecting to database").start();
             let sequelize = yield (0, connect_db_1.default)({
                 database,
                 username,
@@ -45,6 +47,7 @@ function main() {
                 port,
                 host,
             });
+            spinner.success();
             if ("--raw-sql" in options || "-r" in options) {
                 let rawSql = (options["--raw-sql"] || options["-r"]).trim();
                 yield (0, exec_query_1.default)(rawSql, sequelize);
@@ -84,6 +87,7 @@ function main() {
                             (0, console_table_printer_1.printTable)(results);
                         }
                         else if (sqlOrCmd.startsWith("use") || sqlOrCmd.startsWith("\\c")) {
+                            spinner = (0, nanospinner_1.createSpinner)("Changing database").start();
                             database = sqlOrCmd
                                 .replace("use ", "")
                                 .replace("\\c ", "")
@@ -98,6 +102,7 @@ function main() {
                                 port,
                                 host,
                             });
+                            spinner.success();
                         }
                         else if (sqlOrCmd == "exit" ||
                             sqlOrCmd == "\\q" ||
