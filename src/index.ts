@@ -12,14 +12,19 @@ async function main() {
     const args = process.argv.slice(2);
     const options = parseOptions(args);
     let database = args[args.length - 1];
+    const decodePwd = "--decode-password" in options || false;
     const dialect = options["--dialect"] || options["-d"];
     const username = options["--username"] || options["-u"];
-    const password =
+    let password =
       options["--password"] ||
       options["-p"] ||
       (await promptInput("Enter password: "));
     const port = options["--port"] ? parseInt(options["--port"]) : 0;
     const host = options["--host"] || options["-h"] || "localhost";
+
+    if (decodePwd) {
+      password = Buffer.from(password, "base64").toString("utf-8").trim();
+    }
 
     let sequelize = await connectDb({
       database,
