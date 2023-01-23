@@ -25,6 +25,7 @@
     "console-table-printer": "^2.11.1",
     "mariadb": "^3.0.2",
     "mysql2": "^3.0.1",
+    "nanospinner": "^1.1.0",
     "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.28.0",
