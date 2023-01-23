@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev-postgres": "tsc && node index -h 4.196.160.112 --port 5434 -p P@ssword -u postgres -d postgres ec",
-    "dev-mssql": "tsc && node index -h ibanking.database.windows.net --port 1433 -p P@ssword -u ibanking -d mssql ibankingydnb",
+    "dev-postgres": "tsc && node index -h 4.196.160.112 --port 5434 -u postgres -d postgres ec",
+    "dev-mssql": "tsc && node index -h ibanking.database.windows.net --port 1433 -u ibanking -d mssql ibankingydnb",
     "build": "tsc",
     "test": "tsc && jest --verbose",
     "watch": "tsc -w",

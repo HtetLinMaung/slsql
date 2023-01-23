@@ -5,6 +5,7 @@ import connectDb from "./utils/connect-db";
 import parseOptions from "./utils/parse-options";
 import repl from "./utils/repl";
 import { printTable } from "console-table-printer";
+import promptInput from "./utils/prompt-input";
 
 async function main() {
   try {
@@ -13,7 +14,10 @@ async function main() {
     let database = args[args.length - 1];
     const dialect = options["--dialect"] || options["-d"];
     const username = options["--username"] || options["-u"];
-    const password = options["--password"] || options["-p"];
+    const password =
+      options["--password"] ||
+      options["-p"] ||
+      (await promptInput("Enter password: "));
     const port = options["--port"] ? parseInt(options["--port"]) : 0;
     const host = options["--host"] || options["-h"] || "localhost";
 

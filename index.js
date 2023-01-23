@@ -18,6 +18,7 @@ const connect_db_1 = __importDefault(require("./utils/connect-db"));
 const parse_options_1 = __importDefault(require("./utils/parse-options"));
 const repl_1 = __importDefault(require("./utils/repl"));
 const console_table_printer_1 = require("console-table-printer");
+const prompt_input_1 = __importDefault(require("./utils/prompt-input"));
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -26,7 +27,9 @@ function main() {
             let database = args[args.length - 1];
             const dialect = options["--dialect"] || options["-d"];
             const username = options["--username"] || options["-u"];
-            const password = options["--password"] || options["-p"];
+            const password = options["--password"] ||
+                options["-p"] ||
+                (yield (0, prompt_input_1.default)("Enter password: "));
             const port = options["--port"] ? parseInt(options["--port"]) : 0;
             const host = options["--host"] || options["-h"] || "localhost";
             let sequelize = yield (0, connect_db_1.default)({
