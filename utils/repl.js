@@ -65,7 +65,7 @@ function repl(question = "> ", cb = (answer) => __awaiter(this, void 0, void 0, 
             i = 0;
             question = yield cb(answer);
             rl.close();
-        } while (answer != "exit" && answer != "\\q");
+        } while (answer != "exit" && answer != "\\q" && answer != "quit");
     });
 }
 exports.default = repl;

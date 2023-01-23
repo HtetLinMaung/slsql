@@ -19,6 +19,7 @@ const parse_options_1 = __importDefault(require("./utils/parse-options"));
 const repl_1 = __importDefault(require("./utils/repl"));
 const console_table_printer_1 = require("console-table-printer");
 const prompt_input_1 = __importDefault(require("./utils/prompt-input"));
+const exec_query_1 = __importDefault(require("./utils/exec-query"));
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -44,88 +45,80 @@ function main() {
                 port,
                 host,
             });
-            let sql = "";
-            yield (0, repl_1.default)(`${database} > `, (answer) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const sqlOrCmd = answer.toLowerCase().trim();
-                    if (sqlOrCmd == "show databases" || sqlOrCmd == "show database") {
-                        if (dialect == "postgres") {
-                            const results = yield sequelize.query(`select datname database_name from pg_database`, {
-                                type: sequelize_1.QueryTypes.SELECT,
-                            });
-                            (0, console_table_printer_1.printTable)(results);
-                        }
-                        else if (dialect == "mssql") {
-                            const results = yield sequelize.query(`select name database_name from sys.databases`, {
-                                type: sequelize_1.QueryTypes.SELECT,
-                            });
-                            (0, console_table_printer_1.printTable)(results);
-                        }
-                    }
-                    else if (sqlOrCmd == "show tables" || sqlOrCmd == "show table") {
-                        if (dialect == "postgres") {
-                            const results = yield sequelize.query(`select schemaname schema_name, tablename table_name from pg_catalog.pg_tables`, {
-                                type: sequelize_1.QueryTypes.SELECT,
-                            });
-                            (0, console_table_printer_1.printTable)(results);
-                        }
-                        else if (dialect == "mssql") {
-                            const results = yield sequelize.query(`select schema_name(schema_id) as schema_name, name table_name from sys.tables`, {
-                                type: sequelize_1.QueryTypes.SELECT,
-                            });
-                            (0, console_table_printer_1.printTable)(results);
-                        }
-                    }
-                    else if (sqlOrCmd.startsWith("use") || sqlOrCmd.startsWith("\\c")) {
-                        database = sqlOrCmd
-                            .replace("use ", "")
-                            .replace("\\c ", "")
-                            .split(" ")
-                            .filter((t) => t)[0];
-                        yield sequelize.close();
-                        sequelize = yield (0, connect_db_1.default)({
-                            database,
-                            username,
-                            password,
-                            dialect,
-                            port,
-                            host,
-                        });
-                    }
-                    else if (sqlOrCmd == "exit" || sqlOrCmd == "\\q") {
-                        yield sequelize.close();
-                    }
-                    else {
-                        sql += sqlOrCmd;
-                        if (sql.endsWith(";")) {
-                            const starttime = Date.now();
-                            const [results, meta] = yield sequelize.query(sql.replace(";", ""));
-                            if (sql.startsWith("select")) {
-                                if (results.length) {
-                                    (0, console_table_printer_1.printTable)(results);
-                                }
+            if ("--raw-sql" in options || "-r" in options) {
+                let rawSql = (options["--raw-sql"] || options["-r"]).trim();
+                yield (0, exec_query_1.default)(rawSql, sequelize);
+                yield sequelize.close();
+            }
+            else {
+                yield (0, repl_1.default)(`${database} > `, (answer) => __awaiter(this, void 0, void 0, function* () {
+                    let sql = "";
+                    try {
+                        const sqlOrCmd = answer.toLowerCase().trim();
+                        if (sqlOrCmd == "show databases" || sqlOrCmd == "show database") {
+                            let showDatabaseSql = "";
+                            if (dialect == "postgres") {
+                                showDatabaseSql = "select datname database_name from pg_database";
                             }
-                            else {
-                                let message = "Query Ok";
-                                if (typeof meta == "number") {
-                                    message += `, ${meta} row${meta > 1 ? "s" : ""} affected`;
-                                }
-                                else if (meta.rowCount) {
-                                    message += `, ${meta.rowCount} row${meta.rowCount > 1 ? "s" : ""} affected`;
-                                }
-                                message += ` (${(Date.now() - starttime) / 1000})`;
-                                console.log(message);
+                            else if (dialect == "mssql") {
+                                showDatabaseSql = "select name database_name from sys.databases";
                             }
-                            sql = "";
+                            const results = yield sequelize.query(showDatabaseSql, {
+                                type: sequelize_1.QueryTypes.SELECT,
+                            });
+                            (0, console_table_printer_1.printTable)(results);
+                        }
+                        else if (sqlOrCmd == "show tables" || sqlOrCmd == "show table") {
+                            let showTableSql = "";
+                            if (dialect == "postgres") {
+                                showTableSql =
+                                    "select schemaname schema_name, tablename table_name from pg_catalog.pg_tables";
+                            }
+                            else if (dialect == "mssql") {
+                                showTableSql =
+                                    "select schema_name(schema_id) as schema_name, name table_name from sys.tables";
+                            }
+                            const results = yield sequelize.query(showTableSql, {
+                                type: sequelize_1.QueryTypes.SELECT,
+                            });
+                            (0, console_table_printer_1.printTable)(results);
+                        }
+                        else if (sqlOrCmd.startsWith("use") || sqlOrCmd.startsWith("\\c")) {
+                            database = sqlOrCmd
+                                .replace("use ", "")
+                                .replace("\\c ", "")
+                                .split(" ")
+                                .filter((t) => t)[0];
+                            yield sequelize.close();
+                            sequelize = yield (0, connect_db_1.default)({
+                                database,
+                                username,
+                                password,
+                                dialect,
+                                port,
+                                host,
+                            });
+                        }
+                        else if (sqlOrCmd == "exit" ||
+                            sqlOrCmd == "\\q" ||
+                            sqlOrCmd == "quit") {
+                            yield sequelize.close();
+                        }
+                        else {
+                            sql += sqlOrCmd;
+                            if (sql.endsWith(";")) {
+                                yield (0, exec_query_1.default)(sql, sequelize);
+                                sql = "";
+                            }
                         }
                     }
-                }
-                catch (err) {
-                    sql = "";
-                    console.error(err.message);
-                }
-                return `${database} > `;
-            }));
+                    catch (err) {
+                        sql = "";
+                        console.error(err.message);
+                    }
+                    return `${database} > `;
+                }));
+            }
         }
         catch (err) {
             console.error(err.message);

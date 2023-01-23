@@ -34,5 +34,5 @@ export default async function repl(
     i = 0;
     question = await cb(answer);
     rl.close();
-  } while (answer != "exit" && answer != "\\q");
+  } while (answer != "exit" && answer != "\\q" && answer != "quit");
 }
