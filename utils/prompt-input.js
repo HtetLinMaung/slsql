@@ -36,19 +36,7 @@ const readline = __importStar(require("node:readline/promises"));
 const node_process_1 = require("node:process");
 function promptInput(question) {
     return __awaiter(this, void 0, void 0, function* () {
-        let rl = readline.createInterface({ input: node_process_1.stdin, output: node_process_1.stdout });
-        rl.query = question;
-        rl.stdoutMuted = true;
-        rl._writeToOutput = function _writeToOutput(stringToWrite) {
-            if (rl.stdoutMuted)
-                rl.output.write("\x1B[2K\x1B[200D" +
-                    rl.query +
-                    "[" +
-                    (rl.line.length % 2 == 1 ? "=-" : "-=") +
-                    "]");
-            else
-                rl.output.write(stringToWrite);
-        };
+        const rl = readline.createInterface({ input: node_process_1.stdin, output: node_process_1.stdout });
         const answer = yield rl.question(question);
         rl.close();
         return answer;
